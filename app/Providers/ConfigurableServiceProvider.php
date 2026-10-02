@@ -16,7 +16,7 @@ final class ConfigurableServiceProvider extends ServiceProvider
     {
         collect(config()->array('configurables'))
             ->keys()
-            ->map(fn (int|string $configurable): mixed => $this->app->make((string) $configurable))
+            ->map(fn (string $configurable): Configurable => $this->app->make($configurable))
             ->ensure(Configurable::class)
             ->filter(fn (Configurable $configurable): bool => $configurable->enabled())
             ->each(fn (Configurable $configurable) => $configurable->configure());
