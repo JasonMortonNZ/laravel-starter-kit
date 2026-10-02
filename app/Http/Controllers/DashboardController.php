@@ -6,25 +6,24 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\PendingInvitationResource;
 use App\Models\TeamInvitation;
+use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 final class DashboardController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(#[CurrentUser] User $user): JsonResponse
     {
-        $user = $request->user();
-
         $pendingInvitations = TeamInvitation::query()
             ->with(['inviter', 'team'])
             ->pending()
-            ->whereRaw('LOWER(email) = ?', [mb_strtolower($user->email)])
+            ->where('email', $user->email)
             ->latest()
             ->get();
 
         return response()->json([
-            'currentTeam' => $user->toCurrentUserTeam(),
-            'pendingInvitations' => PendingInvitationResource::collection($pendingInvitations),
+            'current_team' => $user->toCurrentUserTeam(),
+            'pending_invitations' => PendingInvitationResource::collection($pendingInvitations),
         ]);
     }
 }

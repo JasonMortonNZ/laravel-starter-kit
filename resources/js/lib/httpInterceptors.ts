@@ -10,7 +10,7 @@ import type { FlashToast, Team, User } from '@/types';
 
 type SharedPayload = {
     toast?: FlashToast;
-    currentTeam?: Team | null;
+    current_team?: Team | null;
     user?: User;
     teams?: Team[];
 };
@@ -31,8 +31,8 @@ function syncSharedState(payload: unknown): void {
     const data = payload as SharedPayload;
     const auth = useAuthStore();
 
-    if ('currentTeam' in data) {
-        auth.setCurrentTeam(data.currentTeam ?? null);
+    if ('current_team' in data) {
+        auth.setCurrentTeam(data.current_team ?? null);
     }
 
     if (Array.isArray(data.teams)) {

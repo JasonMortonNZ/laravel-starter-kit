@@ -22,7 +22,7 @@ final class EnsureTeamMembership
     {
         [$user, $team] = [$request->user(), $this->team($request)];
 
-        abort_if(! $user || ! $team || ! $user->belongsToTeam($team), 403);
+        abort_if(! $user || ! $team instanceof Team || ! $user->belongsToTeam($team), 403);
 
         $this->ensureTeamMemberHasRequiredRole($user, $team, $minimumRole);
 
@@ -48,7 +48,7 @@ final class EnsureTeamMembership
 
         abort_if(
             $requiredRole === null ||
-            $role === null ||
+            ! $role instanceof TeamRole ||
             ! $role->isAtLeast($requiredRole),
             403,
         );
@@ -62,7 +62,7 @@ final class EnsureTeamMembership
         $team = $request->route('current_team') ?? $request->route('team');
 
         if (is_string($team)) {
-            $team = Team::where('slug', $team)->first();
+            return Team::query()->where('slug', $team)->first();
         }
 
         return $team;

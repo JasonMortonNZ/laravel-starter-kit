@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Models\User;
 use Laravel\Fortify\Features;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
     Features::twoFactorAuthentication([
@@ -14,13 +14,13 @@ beforeEach(function () {
     ]);
 });
 
-test('two factor challenge redirects to login when not authenticated', function () {
+test('two factor challenge redirects to login when not authenticated', function (): void {
     $response = $this->get(route('two-factor.login'));
 
     $response->assertRedirect(route('login'));
 });
 
-test('two factor challenge can be rendered after a password login', function () {
+test('two factor challenge can be rendered after a password login', function (): void {
     $user = User::factory()->withTwoFactor()->create();
 
     $this->postJson(route('login.store'), [
@@ -31,7 +31,7 @@ test('two factor challenge can be rendered after a password login', function () 
     $this->get(route('two-factor.login'))->assertOk();
 });
 
-test('users can complete the two factor challenge with a recovery code', function () {
+test('users can complete the two factor challenge with a recovery code', function (): void {
     $user = User::factory()->withTwoFactor()->create();
 
     $this->postJson(route('login.store'), [
@@ -46,11 +46,10 @@ test('users can complete the two factor challenge with a recovery code', functio
     $this->assertAuthenticatedAs($user);
     $response
         ->assertOk()
-        ->assertJsonPath('two_factor', false)
-        ->assertJsonPath('redirect', "/{$user->personalTeam()->slug}/dashboard");
+        ->assertJsonPath('two_factor', false);
 });
 
-test('users cannot complete the two factor challenge with an invalid recovery code', function () {
+test('users cannot complete the two factor challenge with an invalid recovery code', function (): void {
     $user = User::factory()->withTwoFactor()->create();
 
     $this->postJson(route('login.store'), [

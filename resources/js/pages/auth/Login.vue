@@ -24,7 +24,7 @@ const { completeAuthentication } = useAuthentication();
 const { teamInvitation } = useTeamInvitation();
 
 const status = flash.status;
-const canResetPassword = auth.features.canResetPassword;
+const canResetPassword = auth.features.can_reset_password;
 
 onUnmounted(() => flash.consume());
 
@@ -48,7 +48,6 @@ const handleSuccess = (data: unknown) => completeAuthentication(data);
     <AppForm
         :route="store()"
         :reset-on-success="['password']"
-        :follow-redirect="false"
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"
         @success="handleSuccess"

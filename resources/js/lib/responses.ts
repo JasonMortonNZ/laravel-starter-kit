@@ -4,11 +4,13 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
- * Read the `redirect` path from a JSON response, if the server sent one.
+ * Read the `team.slug` from a JSON response, if the server sent one.
  */
-export function readRedirect(data: unknown): string | null {
-    return isRecord(data) && typeof data.redirect === 'string'
-        ? data.redirect
+export function readTeamSlug(data: unknown): string | null {
+    return isRecord(data) &&
+        isRecord(data.team) &&
+        typeof data.team.slug === 'string'
+        ? data.team.slug
         : null;
 }
 
@@ -30,7 +32,5 @@ export function toAuthResponse(data: unknown): AuthResponse {
 
     return {
         two_factor: record.two_factor === true,
-        redirect:
-            typeof record.redirect === 'string' ? record.redirect : undefined,
     };
 }

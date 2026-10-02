@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-test('unknown paths serve the application shell', function () {
+test('unknown paths serve the application shell', function (): void {
     $this->get('/some/client/side/route')
         ->assertOk()
         ->assertSee('id="app"', false);
 });
 
-test('unknown api paths are not found', function () {
+test('unknown api paths are not found', function (): void {
     $this->getJson('/api/nope')
         ->assertNotFound()
         ->assertJsonStructure(['message']);
 });
 
-test('the health check is not swallowed by the shell', function () {
+test('the health check is not swallowed by the shell', function (): void {
     $this->get('/up')->assertOk();
 });
 
-test('framework required route names resolve to shell routes', function () {
+test('framework required route names resolve to shell routes', function (): void {
     expect(route('login', absolute: false))->toBe('/login')
         ->and(route('register', absolute: false))->toBe('/register')
         ->and(route('password.request', absolute: false))->toBe('/forgot-password')

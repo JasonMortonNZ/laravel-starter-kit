@@ -19,6 +19,10 @@ final class TeamName implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        if (! is_string($value)) {
+            return;
+        }
+
         $name = mb_strtolower(mb_trim($value));
 
         if (in_array($name, $this->reservedNames(), true)) {
@@ -367,7 +371,7 @@ final class TeamName implements ValidationRule
             ->unique()
             ->sort()
             ->values()
-            ->toArray());
+            ->all());
     }
 
     /**
@@ -379,12 +383,12 @@ final class TeamName implements ValidationRule
     {
         return collect(Route::getRoutes()->getRoutes())
             ->map(fn (RouteElement $route) => $route->uri)
-            ->map(fn (string $uri) => explode('/', $uri)[0])
-            ->reject(fn (string $uri) => str_contains($uri, '{'))
-            ->filter(fn (string $uri) => $uri !== '')
+            ->map(fn (string $uri): string => explode('/', $uri)[0])
+            ->reject(fn (string $uri): bool => str_contains($uri, '{'))
+            ->filter(fn (string $uri): bool => $uri !== '')
             ->unique()
             ->sort()
             ->values()
-            ->toArray();
+            ->all();
     }
 }

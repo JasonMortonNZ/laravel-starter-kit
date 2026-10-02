@@ -35,7 +35,7 @@ const handleLeft = async () => {
 const leaveTeamDialogOpen = ref(false);
 const teamLeaving = ref<Team | null>(null);
 
-const canLeaveTeam = (team: Team) => !team.isPersonal && team.role !== 'owner';
+const canLeaveTeam = (team: Team) => !team.is_personal && team.role !== 'owner';
 
 const openLeaveTeamDialog = (team: Team) => {
     teamLeaving.value = team;
@@ -76,12 +76,12 @@ const openLeaveTeamDialog = (team: Team) => {
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-medium">{{ team.name }}</span>
-                            <Badge v-if="team.isPersonal" variant="secondary">
+                            <Badge v-if="team.is_personal" variant="secondary">
                                 Personal
                             </Badge>
                         </div>
                         <span class="text-sm text-muted-foreground">
-                            {{ team.roleLabel }}
+                            {{ team.role_label }}
                         </span>
                     </div>
                 </div>

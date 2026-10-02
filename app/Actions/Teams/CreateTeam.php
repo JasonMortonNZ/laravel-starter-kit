@@ -17,7 +17,7 @@ final class CreateTeam
     public function handle(User $user, string $name, bool $isPersonal = false): Team
     {
         return DB::transaction(function () use ($user, $name, $isPersonal) {
-            $team = Team::create([
+            $team = Team::query()->create([
                 'name' => $name,
                 'is_personal' => $isPersonal,
             ]);

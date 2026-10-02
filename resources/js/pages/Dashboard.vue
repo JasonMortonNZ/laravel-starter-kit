@@ -45,8 +45,8 @@ watchEffect(() => {
 
 <template>
     <PendingInvitationsModal
-        v-if="data && data.pendingInvitations.length > 0"
-        :invitations="data.pendingInvitations"
+        v-if="data && data.pending_invitations.length > 0"
+        :invitations="data.pending_invitations"
         @changed="reload"
     />
 

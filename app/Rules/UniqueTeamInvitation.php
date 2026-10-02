@@ -10,7 +10,7 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
 
-final class UniqueTeamInvitation implements ValidationRule
+final readonly class UniqueTeamInvitation implements ValidationRule
 {
     public function __construct(private Team $team)
     {
@@ -24,10 +24,12 @@ final class UniqueTeamInvitation implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $email = mb_strtolower($value);
+        if (! is_string($value)) {
+            return;
+        }
 
         $isMember = $this->team->members()
-            ->whereRaw('LOWER(email) = ?', [$email])
+            ->where('users.email', mb_strtolower($value))
             ->exists();
 
         if ($isMember) {
@@ -39,7 +41,7 @@ final class UniqueTeamInvitation implements ValidationRule
         $hasPendingInvitation = TeamInvitation::query()
             ->pending()
             ->where('team_id', $this->team->id)
-            ->whereRaw('LOWER(email) = ?', [$email])
+            ->where('email', mb_strtolower($value))
             ->exists();
 
         if ($hasPendingInvitation) {

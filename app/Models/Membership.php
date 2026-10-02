@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Carbon;
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property-read User $user
  */
 #[Fillable(['team_id', 'user_id', 'role'])]
+#[Table(name: 'team_members')]
 final class Membership extends Pivot
 {
     /**
@@ -29,13 +31,6 @@ final class Membership extends Pivot
      * @var bool
      */
     public $incrementing = true;
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'team_members';
 
     /**
      * Get the team that the membership belongs to.

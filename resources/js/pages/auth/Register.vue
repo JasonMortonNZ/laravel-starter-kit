@@ -32,7 +32,6 @@ const handleSuccess = (data: unknown) => completeAuthentication(data);
     <AppForm
         :route="store()"
         :reset-on-success="['password', 'password_confirmation']"
-        :follow-redirect="false"
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"
         @success="handleSuccess"

@@ -7,9 +7,11 @@ use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
 use App\Notifications\Teams\TeamInvitation as TeamInvitationNotification;
+use App\Rules\ValidTeamInvitation;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Validator;
 
-test('team invitations can be created', function () {
+test('team invitations can be created', function (): void {
     Notification::fake();
 
     $owner = User::factory()->create();
@@ -35,7 +37,7 @@ test('team invitations can be created', function () {
     ]);
 });
 
-test('invitation email for existing users uses login route', function () {
+test('invitation email for existing users uses login route', function (): void {
     $owner = User::factory()->create();
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create();
@@ -48,13 +50,13 @@ test('invitation email for existing users uses login route', function () {
         'invited_by' => $owner->id,
     ]);
 
-    $mail = (new TeamInvitationNotification($invitation))->toMail($invitedUser);
+    $mail = new TeamInvitationNotification($invitation)->toMail($invitedUser);
 
     expect($mail->actionUrl)->toBe(route('login', ['invitation' => $invitation->code]));
     $this->assertStringContainsString('dashboard', implode(' ', $mail->introLines));
 });
 
-test('invitation email for unknown users uses login route', function () {
+test('invitation email for unknown users uses login route', function (): void {
     $owner = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -66,13 +68,13 @@ test('invitation email for unknown users uses login route', function () {
         'invited_by' => $owner->id,
     ]);
 
-    $mail = (new TeamInvitationNotification($invitation))->toMail((object) []);
+    $mail = new TeamInvitationNotification($invitation)->toMail((object) []);
 
     expect($mail->actionUrl)->toBe(route('login', ['invitation' => $invitation->code]));
     $this->assertStringContainsString('log in', mb_strtolower(implode(' ', $mail->introLines)));
 });
 
-test('team invitations can be created by admins', function () {
+test('team invitations can be created by admins', function (): void {
     Notification::fake();
 
     $owner = User::factory()->create();
@@ -92,7 +94,7 @@ test('team invitations can be created by admins', function () {
     $response->assertCreated();
 });
 
-test('existing team members cannot be invited', function () {
+test('existing team members cannot be invited', function (): void {
     Notification::fake();
 
     $owner = User::factory()->create();
@@ -114,7 +116,23 @@ test('existing team members cannot be invited', function () {
         ->assertJsonValidationErrors('email');
 });
 
-test('duplicate invitations cannot be created', function () {
+test('invitation emails must be strings', function (): void {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create();
+
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+
+    $this
+        ->actingAs($owner)
+        ->postJson(route('teams.invitations.store', $team), [
+            'email' => ['member@example.com'],
+            'role' => TeamRole::Member->value,
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('email');
+});
+
+test('duplicate invitations cannot be created', function (): void {
     Notification::fake();
 
     $owner = User::factory()->create();
@@ -139,7 +157,7 @@ test('duplicate invitations cannot be created', function () {
         ->assertJsonValidationErrors('email');
 });
 
-test('team invitations cannot be created by members', function () {
+test('team invitations cannot be created by members', function (): void {
     $owner = User::factory()->create();
     $member = User::factory()->create();
     $team = Team::factory()->create();
@@ -157,7 +175,7 @@ test('team invitations cannot be created by members', function () {
     $response->assertForbidden();
 });
 
-test('team invitations can be cancelled by owners', function () {
+test('team invitations can be cancelled by owners', function (): void {
     $owner = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -181,7 +199,7 @@ test('team invitations can be cancelled by owners', function () {
     ]);
 });
 
-test('team invitations can be accepted', function () {
+test('team invitations can be accepted', function (): void {
     $owner = User::factory()->create();
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create();
@@ -202,14 +220,13 @@ test('team invitations can be accepted', function () {
     $response
         ->assertOk()
         ->assertJsonPath('toast', ['type' => 'success', 'message' => 'Invitation accepted.'])
-        ->assertJsonPath('redirect', "/{$team->slug}/dashboard")
-        ->assertJsonPath('currentTeam.id', $team->id);
+        ->assertJsonPath('current_team.id', $team->id);
 
     expect($invitedUser->fresh()->belongsToTeam($team))->toBeTrue();
     expect($invitation->fresh()->accepted_at)->not->toBeNull();
 });
 
-test('team invitations can be declined by the invited user', function () {
+test('team invitations can be declined by the invited user', function (): void {
     $owner = User::factory()->create();
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create();
@@ -235,7 +252,7 @@ test('team invitations can be declined by the invited user', function () {
     ]);
 });
 
-test('team invitations cannot be declined by uninvited user', function () {
+test('team invitations cannot be declined by uninvited user', function (): void {
     $owner = User::factory()->create();
     $uninvitedUser = User::factory()->create(['email' => 'uninvited@example.com']);
     $team = Team::factory()->create();
@@ -261,7 +278,7 @@ test('team invitations cannot be declined by uninvited user', function () {
     ]);
 });
 
-test('accepted team invitations cannot be declined', function () {
+test('accepted team invitations cannot be declined', function (): void {
     $owner = User::factory()->create();
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create();
@@ -287,7 +304,7 @@ test('accepted team invitations cannot be declined', function () {
     ]);
 });
 
-test('team invitations cannot be accepted by uninvited user', function () {
+test('team invitations cannot be accepted by uninvited user', function (): void {
     $owner = User::factory()->create();
     $uninvitedUser = User::factory()->create(['email' => 'uninvited@example.com']);
     $team = Team::factory()->create();
@@ -311,7 +328,7 @@ test('team invitations cannot be accepted by uninvited user', function () {
     expect($uninvitedUser->fresh()->belongsToTeam($team))->toBeFalse();
 });
 
-test('expired invitations cannot be accepted', function () {
+test('expired invitations cannot be accepted', function (): void {
     $owner = User::factory()->create();
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create();
@@ -333,4 +350,48 @@ test('expired invitations cannot be accepted', function () {
         ->assertJsonValidationErrors('invitation');
 
     expect($invitedUser->fresh()->belongsToTeam($team))->toBeFalse();
+});
+
+test('invitation emails are lowercased and matched case-insensitively', function (): void {
+    Notification::fake();
+
+    $owner = User::factory()->create();
+    $member = User::factory()->create(['email' => 'member@example.com']);
+    $team = Team::factory()->create();
+
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+    $team->members()->attach($member, ['role' => TeamRole::Member->value]);
+
+    $this
+        ->actingAs($owner)
+        ->postJson(route('teams.invitations.store', $team), [
+            'email' => 'Member@Example.com',
+            'role' => TeamRole::Member->value,
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('email');
+
+    $this
+        ->actingAs($owner)
+        ->postJson(route('teams.invitations.store', $team), [
+            'email' => 'New.Person@Example.com',
+            'role' => TeamRole::Member->value,
+        ])
+        ->assertCreated();
+
+    $this->assertDatabaseHas('team_invitations', [
+        'team_id' => $team->id,
+        'email' => 'new.person@example.com',
+    ]);
+});
+
+test('invitations cannot be validated without a user', function (): void {
+    $invitation = TeamInvitation::factory()->create();
+
+    $validator = Validator::make(
+        ['invitation' => $invitation],
+        ['invitation' => [new ValidTeamInvitation(null)]],
+    );
+
+    expect($validator->errors()->first('invitation'))->toBe('This invitation was sent to a different email address.');
 });

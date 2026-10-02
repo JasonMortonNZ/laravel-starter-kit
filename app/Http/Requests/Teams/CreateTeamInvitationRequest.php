@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Teams;
 
 use App\Enums\TeamRole;
+use App\Http\Requests\Concerns\LowercasesEmail;
 use App\Models\Team;
 use App\Rules\UniqueTeamInvitation;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -13,6 +14,8 @@ use Illuminate\Validation\Rule;
 
 final class CreateTeamInvitationRequest extends FormRequest
 {
+    use LowercasesEmail;
+
     /**
      * Get the validation rules that apply to the request.
      *

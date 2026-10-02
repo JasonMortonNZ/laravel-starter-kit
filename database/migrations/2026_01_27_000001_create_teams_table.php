@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,7 +13,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('teams', function (Blueprint $table) {
+        Schema::create('teams', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
@@ -20,23 +22,23 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create('team_members', function (Blueprint $table) {
+        Schema::create('team_members', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('team_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->index()->constrained()->cascadeOnDelete();
             $table->string('role');
             $table->timestamps();
 
             $table->unique(['team_id', 'user_id']);
         });
 
-        Schema::create('team_invitations', function (Blueprint $table) {
+        Schema::create('team_invitations', function (Blueprint $table): void {
             $table->id();
             $table->string('code', 64)->unique();
-            $table->foreignId('team_id')->constrained()->cascadeOnDelete();
-            $table->string('email');
+            $table->foreignId('team_id')->index()->constrained()->cascadeOnDelete();
+            $table->string('email')->index();
             $table->string('role');
-            $table->foreignId('invited_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('invited_by')->index()->constrained('users')->cascadeOnDelete();
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('accepted_at')->nullable();
             $table->timestamps();

@@ -57,7 +57,6 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
         <template v-if="!showRecoveryInput">
             <AppForm
                 :route="store()"
-                :follow-redirect="false"
                 class="space-y-4"
                 reset-on-error
                 @error="code = ''"
@@ -106,7 +105,6 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
         <template v-else>
             <AppForm
                 :route="store()"
-                :follow-redirect="false"
                 class="space-y-4"
                 reset-on-error
                 @success="handleSuccess"

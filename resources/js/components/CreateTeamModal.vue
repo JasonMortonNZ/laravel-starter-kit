@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import AppForm from '@/components/AppForm.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -15,17 +16,25 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { readTeamSlug } from '@/lib/responses';
 import { store } from '@/routes/teams';
 import { useAuthStore } from '@/stores/auth';
 
 const auth = useAuthStore();
+const router = useRouter();
 const open = ref(false);
 const formKey = ref(0);
 
-const handleSuccess = () => {
+const handleSuccess = async (data: unknown) => {
     open.value = false;
 
-    void auth.fetch();
+    await auth.fetch();
+
+    const slug = readTeamSlug(data);
+
+    if (slug) {
+        await router.push({ name: 'teams.edit', params: { team: slug } });
+    }
 };
 
 function handleOpenChange(value: boolean) {

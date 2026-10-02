@@ -29,7 +29,7 @@ export function registerGuards(router: Router): void {
         }
 
         const needsVerification =
-            auth.features.mustVerifyEmail && !auth.isVerified;
+            auth.features.must_verify_email && !auth.isVerified;
 
         if (requires('verified') && needsVerification) {
             return { name: 'verification.notice' };

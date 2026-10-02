@@ -11,18 +11,8 @@ use Illuminate\Support\Facades\URL;
 trait RedirectsToCurrentTeam
 {
     /**
-     * Get the path the SPA should navigate to after authenticating: the intended
-     * URL if one was stored by a guarded deep link, otherwise the team-scoped default.
+     * Get the team-scoped path for the given redirect.
      */
-    protected function intendedPath(Request $request, string $redirect): string
-    {
-        $intended = $request->session()->pull('url.intended');
-
-        return is_string($intended) && $intended !== ''
-            ? $intended
-            : $this->redirectPathForCurrentTeam($request, $redirect);
-    }
-
     protected function redirectPathForCurrentTeam(Request $request, string $redirect): string
     {
         $team = $this->currentTeam($request);

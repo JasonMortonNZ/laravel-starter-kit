@@ -8,6 +8,7 @@ use App\Concerns\GeneratesUniqueTeamSlugs;
 use App\Enums\TeamRole;
 use Database\Factories\TeamFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,10 +30,15 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, User> $members
  */
 #[Fillable(['name', 'slug', 'is_personal'])]
+#[RouteKey('slug')]
 final class Team extends Model
 {
+    use GeneratesUniqueTeamSlugs;
+
     /** @use HasFactory<TeamFactory> */
-    use GeneratesUniqueTeamSlugs, HasFactory, SoftDeletes;
+    use HasFactory;
+
+    use SoftDeletes;
 
     /**
      * Get the team owner.
@@ -78,29 +84,21 @@ final class Team extends Model
     }
 
     /**
-     * Get the route key for the model.
-     */
-    public function getRouteKeyName(): string
-    {
-        return 'slug';
-    }
-
-    /**
      * Bootstrap the model and its traits.
      */
     protected static function boot(): void
     {
         parent::boot();
 
-        self::creating(function (Team $team) {
+        self::creating(function (Team $team): void {
             if (empty($team->slug)) {
-                $team->slug = static::generateUniqueTeamSlug($team->name);
+                $team->slug = self::generateUniqueTeamSlug($team->name);
             }
         });
 
-        self::updating(function (Team $team) {
+        self::updating(function (Team $team): void {
             if ($team->isDirty('name')) {
-                $team->slug = static::generateUniqueTeamSlug($team->name, $team->id);
+                $team->slug = self::generateUniqueTeamSlug($team->name, $team->id);
             }
         });
     }

@@ -11,9 +11,8 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { request } from '@/lib/http';
-import { toClientPath } from '@/lib/navigation';
 import { useAuthStore } from '@/stores/auth';
-import type { DashboardInvitation, ToastResponse } from '@/types';
+import type { DashboardInvitation } from '@/types';
 
 type Props = {
     invitations: DashboardInvitation[];
@@ -34,17 +33,13 @@ const acceptInvitation = async (invitation: DashboardInvitation) => {
     processingCode.value = invitation.code;
 
     try {
-        const { data } = await request<ToastResponse>(
-            TeamInvitationController.accept(invitation),
-        );
+        await request(TeamInvitationController.accept(invitation));
 
         await auth.fetch();
 
         open.value = false;
 
-        if (data.redirect) {
-            await router.push(toClientPath(data.redirect));
-        }
+        await router.push(auth.dashboardRoute);
 
         emit('changed');
     } catch {
@@ -93,7 +88,7 @@ const declineInvitation = async (invitation: DashboardInvitation) => {
                     <div class="space-y-1">
                         <p class="font-medium">{{ invitation.team.name }}</p>
                         <p class="text-sm text-muted-foreground">
-                            {{ invitation.inviterName }} invited you to join
+                            {{ invitation.inviter_name }} invited you to join
                             this team.
                         </p>
                     </div>

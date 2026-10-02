@@ -14,8 +14,8 @@ use App\Http\Resources\TeamMemberResource;
 use App\Http\Resources\TeamResource;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -24,39 +24,36 @@ final class TeamController extends Controller
     /**
      * List the user's teams.
      */
-    public function index(Request $request): JsonResponse
+    public function index(#[CurrentUser] User $user): JsonResponse
     {
         return response()->json([
-            'teams' => $request->user()->toUserTeams(includeCurrent: true),
+            'teams' => $user->toUserTeams(includeCurrent: true),
         ]);
     }
 
     /**
      * Store a newly created team.
      */
-    public function store(SaveTeamRequest $request, CreateTeam $createTeam): JsonResponse
+    public function store(SaveTeamRequest $request, CreateTeam $createTeam, #[CurrentUser] User $user): JsonResponse
     {
-        $team = $createTeam->handle($request->user(), $request->validated('name'));
+        $team = $createTeam->handle($user, $request->string('name')->toString());
 
         return $this->toast(__('Team created.'), [
             'team' => TeamResource::make($team),
-            'redirect' => route('teams.edit', ['team' => $team->slug], false),
         ], 201);
     }
 
     /**
      * Return the team with its members, invitations, and the user's permissions.
      */
-    public function show(Request $request, Team $team): JsonResponse
+    public function show(Team $team, #[CurrentUser] User $user): JsonResponse
     {
-        $user = $request->user();
-
         return response()->json([
             'team' => TeamResource::make($team),
             'members' => TeamMemberResource::collection($team->members()->get()),
             'invitations' => TeamInvitationResource::collection($team->invitations()->whereNull('accepted_at')->get()),
             'permissions' => $user->toTeamPermissions($team),
-            'availableRoles' => TeamRole::assignable(),
+            'available_roles' => TeamRole::assignable(),
         ]);
     }
 
@@ -68,7 +65,7 @@ final class TeamController extends Controller
         Gate::authorize('update', $team);
 
         $team = DB::transaction(function () use ($request, $team) {
-            $team = Team::whereKey($team->id)->lockForUpdate()->firstOrFail();
+            $team = Team::query()->whereKey($team->id)->lockForUpdate()->firstOrFail();
 
             $team->update(['name' => $request->validated('name')]);
 
@@ -83,25 +80,23 @@ final class TeamController extends Controller
     /**
      * Switch the user's current team.
      */
-    public function switch(Request $request, Team $team): JsonResponse
+    public function switch(Team $team, #[CurrentUser] User $user): JsonResponse
     {
-        abort_unless($request->user()->belongsToTeam($team), 403);
+        abort_unless($user->belongsToTeam($team), 403);
 
-        $request->user()->switchTeam($team);
+        $user->switchTeam($team);
 
         return response()->json([
-            'currentTeam' => $request->user()->toCurrentUserTeam(),
+            'current_team' => $user->toCurrentUserTeam(),
         ]);
     }
 
     /**
      * Leave the specified team.
      */
-    public function leave(Request $request, Team $team): JsonResponse
+    public function leave(Team $team, #[CurrentUser] User $user): JsonResponse
     {
         Gate::authorize('leave', $team);
-
-        $user = $request->user();
 
         $fallbackTeam = $user->isCurrentTeam($team)
             ? $user->fallbackTeam($team)
@@ -111,43 +106,46 @@ final class TeamController extends Controller
             ->where('user_id', $user->id)
             ->delete();
 
-        if ($fallbackTeam) {
+        if ($fallbackTeam instanceof Team) {
             $user->switchTeam($fallbackTeam);
         }
 
         return $this->toast(__('You left the team ":name"', ['name' => $team->name]), [
-            'redirect' => route('teams.index', absolute: false),
-            'currentTeam' => $user->toCurrentUserTeam(),
+            'current_team' => $user->toCurrentUserTeam(),
         ]);
     }
 
     /**
      * Delete the specified team.
      */
-    public function destroy(DeleteTeamRequest $request, Team $team): JsonResponse
+    public function destroy(DeleteTeamRequest $request, Team $team, #[CurrentUser] User $user): JsonResponse
     {
-        $user = $request->user();
         $fallbackTeam = $user->isCurrentTeam($team)
             ? $user->fallbackTeam($team)
             : null;
 
-        DB::transaction(function () use ($user, $team) {
-            User::where('current_team_id', $team->id)
+        DB::transaction(function () use ($user, $team): void {
+            User::query()->where('current_team_id', $team->id)
                 ->where('id', '!=', $user->id)
-                ->each(fn (User $affectedUser) => $affectedUser->switchTeam($affectedUser->personalTeam()));
+                ->each(function (User $affectedUser): void {
+                    $personalTeam = $affectedUser->personalTeam();
+
+                    if ($personalTeam instanceof Team) {
+                        $affectedUser->switchTeam($personalTeam);
+                    }
+                });
 
             $team->invitations()->delete();
             $team->memberships()->delete();
             $team->delete();
         });
 
-        if ($fallbackTeam) {
+        if ($fallbackTeam instanceof Team) {
             $user->switchTeam($fallbackTeam);
         }
 
         return $this->toast(__('Team deleted.'), [
-            'redirect' => route('teams.index', absolute: false),
-            'currentTeam' => $user->toCurrentUserTeam(),
+            'current_team' => $user->toCurrentUserTeam(),
         ]);
     }
 }

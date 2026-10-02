@@ -26,16 +26,16 @@ final class BootstrapController extends Controller
             'auth' => [
                 'user' => $user ? UserResource::make($user) : null,
             ],
-            'currentTeam' => $user?->toCurrentUserTeam(),
+            'current_team' => $user?->toCurrentUserTeam(),
             'teams' => $user?->toUserTeams(includeCurrent: true) ?? [],
             'features' => [
-                'canRegister' => Features::enabled(Features::registration()),
-                'canResetPassword' => Features::enabled(Features::resetPasswords()),
-                'canManageTwoFactor' => Features::canManageTwoFactorAuthentication(),
-                'requiresTwoFactorConfirmation' => Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm'),
-                'mustVerifyEmail' => $user instanceof MustVerifyEmail,
+                'can_register' => Features::enabled(Features::registration()),
+                'can_reset_password' => Features::enabled(Features::resetPasswords()),
+                'can_manage_two_factor' => Features::canManageTwoFactorAuthentication(),
+                'requires_two_factor_confirmation' => Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm'),
+                'must_verify_email' => $user instanceof MustVerifyEmail,
             ],
-            'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            'password_rules' => Password::defaults()->toPasswordRulesString(),
         ]);
     }
 }

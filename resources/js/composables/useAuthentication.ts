@@ -1,5 +1,4 @@
 import { useRoute, useRouter } from 'vue-router';
-import { toClientPath } from '@/lib/navigation';
 import { toAuthResponse } from '@/lib/responses';
 import { useAuthStore } from '@/stores/auth';
 
@@ -37,12 +36,7 @@ export function useAuthentication(): UseAuthenticationReturn {
                 ? route.query.redirect
                 : null;
 
-        await router.push(
-            intended ??
-                (data.redirect
-                    ? toClientPath(data.redirect)
-                    : auth.dashboardRoute),
-        );
+        await router.push(intended ?? auth.dashboardRoute);
     }
 
     async function logout(): Promise<void> {

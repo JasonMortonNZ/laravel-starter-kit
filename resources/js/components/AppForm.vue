@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue';
-import { useRouter } from 'vue-router';
 import { useForm } from '@/composables/useForm';
 import type { FormErrors } from '@/composables/useForm';
 import type { HttpRoute } from '@/lib/http';
-import { toClientPath } from '@/lib/navigation';
-import { readRedirect } from '@/lib/responses';
 
 type FormValues = Record<string, FormDataEntryValue>;
 type ResetOption = boolean | string[];
@@ -21,14 +18,11 @@ const props = withDefaults(
         resetOnSuccess?: ResetOption;
         /** Reset all fields, or the named fields, after a validation error. */
         resetOnError?: ResetOption;
-        /** Navigate to the `redirect` returned by the server. */
-        followRedirect?: boolean;
     }>(),
     {
         transform: undefined,
         resetOnSuccess: false,
         resetOnError: false,
-        followRedirect: true,
     },
 );
 
@@ -39,7 +33,6 @@ const emit = defineEmits<{
     finish: [];
 }>();
 
-const router = useRouter();
 const formRef = useTemplateRef<HTMLFormElement>('formRef');
 const form = useForm();
 
@@ -100,15 +93,9 @@ const submit = async (): Promise<void> => {
 
     try {
         await form.submit(props.route, data, {
-            onSuccess: async (result) => {
+            onSuccess: (result) => {
                 applyReset(props.resetOnSuccess);
                 emit('success', result);
-
-                const redirect = readRedirect(result);
-
-                if (props.followRedirect && redirect) {
-                    await router.push(toClientPath(redirect));
-                }
             },
             onError: (errors) => {
                 applyReset(props.resetOnError);

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 use App\Models\User;
 
-test('registration screen can be rendered', function () {
+test('registration screen can be rendered', function (): void {
     $response = $this->get(route('register'));
 
     $response->assertOk();
 });
 
-test('new users can register', function () {
+test('new users can register', function (): void {
     $response = $this->postJson(route('register.store'), [
         'name' => 'Test User',
         'email' => 'test@example.com',
@@ -20,15 +20,14 @@ test('new users can register', function () {
 
     $this->assertAuthenticated();
 
-    $user = User::where('email', 'test@example.com')->firstOrFail();
+    $user = User::query()->where('email', 'test@example.com')->firstOrFail();
 
     $response
         ->assertCreated()
-        ->assertJsonPath('two_factor', false)
-        ->assertJsonPath('redirect', "/{$user->personalTeam()->slug}/dashboard");
+        ->assertJsonPath('two_factor', false);
 });
 
-test('registration requires valid input', function () {
+test('registration requires valid input', function (): void {
     $this->postJson(route('register.store'), [
         'name' => 'Test User',
         'email' => 'not-an-email',

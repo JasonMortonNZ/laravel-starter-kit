@@ -8,7 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Http\Resources\UserResource;
+use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 final class ProfileController extends Controller
@@ -16,27 +19,26 @@ final class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): JsonResponse
+    public function update(ProfileUpdateRequest $request, #[CurrentUser] User $user): JsonResponse
     {
-        $request->user()->fill($request->validated());
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
 
         return $this->toast(__('Profile updated.'), [
-            'user' => UserResource::make($request->user()),
+            'user' => UserResource::make($user),
         ]);
     }
 
     /**
      * Delete the user's profile.
      */
-    public function destroy(ProfileDeleteRequest $request): JsonResponse
+    public function destroy(ProfileDeleteRequest $request, #[CurrentUser] User $user): Response
     {
-        $user = $request->user();
 
         Auth::logout();
 
@@ -45,6 +47,6 @@ final class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json(['redirect' => '/']);
+        return response()->noContent();
     }
 }

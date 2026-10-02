@@ -9,6 +9,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -39,7 +40,24 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 final class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasTeams, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory;
+
+    use HasTeams;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
+
+    /**
+     * Store email addresses lowercased so lookups and unique indexes behave the
+     * same on every database driver.
+     *
+     * @return Attribute<string, string>
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value): string => mb_strtolower($value),
+        );
+    }
 
     /**
      * Get the attributes that should be cast.

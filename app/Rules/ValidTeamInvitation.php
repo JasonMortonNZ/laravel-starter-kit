@@ -10,7 +10,7 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
 
-final class ValidTeamInvitation implements ValidationRule
+final readonly class ValidTeamInvitation implements ValidationRule
 {
     public function __construct(private ?User $user)
     {
@@ -42,7 +42,7 @@ final class ValidTeamInvitation implements ValidationRule
             return;
         }
 
-        if (mb_strtolower($value->email) !== mb_strtolower($this->user->email)) {
+        if ($value->email !== $this->user->email) {
             $fail(__('This invitation was sent to a different email address.'));
         }
     }

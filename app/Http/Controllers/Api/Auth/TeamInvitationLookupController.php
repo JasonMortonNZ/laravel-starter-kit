@@ -28,7 +28,7 @@ final class TeamInvitationLookupController extends Controller
 
         return response()->json([
             'code' => $invitation->code,
-            'teamName' => $invitation->team->name,
+            'team_name' => $invitation->team->name,
         ]);
     }
 }

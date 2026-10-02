@@ -12,15 +12,14 @@ import type { FlashToast } from './ui';
 export type BootstrapData = {
     name: string;
     auth: Auth;
-    currentTeam: Team | null;
+    current_team: Team | null;
     teams: Team[];
     features: Features;
-    passwordRules: string;
+    password_rules: string;
 };
 
 export type ToastResponse = {
     toast?: FlashToast;
-    redirect?: string;
 };
 
 export type MessageResponse = {
@@ -28,15 +27,15 @@ export type MessageResponse = {
 };
 
 export type DashboardData = {
-    currentTeam: Team | null;
-    pendingInvitations: DashboardInvitation[];
+    current_team: Team | null;
+    pending_invitations: DashboardInvitation[];
 };
 
 export type SecuritySettings = {
-    canManageTwoFactor: boolean;
-    passwordRules: string;
-    twoFactorEnabled?: boolean;
-    requiresConfirmation?: boolean;
+    can_manage_two_factor: boolean;
+    password_rules: string;
+    two_factor_enabled?: boolean;
+    requires_confirmation?: boolean;
 };
 
 export type TeamsIndexData = {
@@ -48,5 +47,5 @@ export type TeamShowData = {
     members: TeamMember[];
     invitations: TeamInvitation[];
     permissions: TeamPermissions;
-    availableRoles: RoleOption[];
+    available_roles: RoleOption[];
 };

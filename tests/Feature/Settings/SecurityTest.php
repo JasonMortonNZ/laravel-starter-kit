@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\Features;
 
-test('security settings are returned', function () {
+test('security settings are returned', function (): void {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
     Features::twoFactorAuthentication([
@@ -20,13 +20,13 @@ test('security settings are returned', function () {
         ->withSession(['auth.password_confirmed_at' => time()])
         ->getJson(route('api.settings.security'))
         ->assertOk()
-        ->assertJsonPath('canManageTwoFactor', true)
-        ->assertJsonPath('twoFactorEnabled', false)
-        ->assertJsonPath('requiresConfirmation', true)
-        ->assertJsonPath('passwordRules', fn (mixed $rules) => is_string($rules));
+        ->assertJsonPath('can_manage_two_factor', true)
+        ->assertJsonPath('two_factor_enabled', false)
+        ->assertJsonPath('requires_confirmation', true)
+        ->assertJsonPath('password_rules', fn (mixed $rules): bool => is_string($rules));
 });
 
-test('security page requires password confirmation when enabled', function () {
+test('security page requires password confirmation when enabled', function (): void {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
     $user = User::factory()->create();
@@ -45,7 +45,7 @@ test('security page requires password confirmation when enabled', function () {
         ->assertStatus(423);
 });
 
-test('security settings omit two factor when feature is disabled', function () {
+test('security settings omit two factor when feature is disabled', function (): void {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
     config(['fortify.features' => []]);
@@ -56,12 +56,12 @@ test('security settings omit two factor when feature is disabled', function () {
         ->withSession(['auth.password_confirmed_at' => time()])
         ->getJson(route('api.settings.security'))
         ->assertOk()
-        ->assertJsonPath('canManageTwoFactor', false)
-        ->assertJsonMissingPath('twoFactorEnabled')
-        ->assertJsonMissingPath('requiresConfirmation');
+        ->assertJsonPath('can_manage_two_factor', false)
+        ->assertJsonMissingPath('two_factor_enabled')
+        ->assertJsonMissingPath('requires_confirmation');
 });
 
-test('password can be updated', function () {
+test('password can be updated', function (): void {
     $user = User::factory()->create();
 
     $response = $this
@@ -79,7 +79,7 @@ test('password can be updated', function () {
     expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
 });
 
-test('correct password must be provided to update password', function () {
+test('correct password must be provided to update password', function (): void {
     $user = User::factory()->create();
 
     $response = $this

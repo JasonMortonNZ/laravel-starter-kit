@@ -16,7 +16,7 @@ final class TeamResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @return array{id: int, name: string, slug: string, isPersonal: bool}
+     * @return array{id: int, name: string, slug: string, is_personal: bool}
      */
     public function toArray(Request $request): array
     {
@@ -24,7 +24,7 @@ final class TeamResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'isPersonal' => $this->is_personal,
+            'is_personal' => $this->is_personal,
         ];
     }
 }

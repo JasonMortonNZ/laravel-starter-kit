@@ -22,36 +22,36 @@ function invitationFor(Team $team, User $owner, string $state = 'pending'): Team
     ]);
 }
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->team = Team::factory()->create(['name' => 'Laravel Team']);
     $this->team->members()->attach($this->owner, ['role' => TeamRole::Owner->value]);
 });
 
-test('a pending invitation code resolves to its team', function () {
+test('a pending invitation code resolves to its team', function (): void {
     $invitation = invitationFor($this->team, $this->owner);
 
     $this->getJson(route('api.auth.invitation', ['code' => $invitation->code]))
         ->assertOk()
         ->assertJsonPath('code', $invitation->code)
-        ->assertJsonPath('teamName', 'Laravel Team');
+        ->assertJsonPath('team_name', 'Laravel Team');
 });
 
-test('a missing code is not found', function () {
+test('a missing code is not found', function (): void {
     $this->getJson(route('api.auth.invitation'))->assertNotFound();
 });
 
-test('an unknown code is not found', function () {
+test('an unknown code is not found', function (): void {
     $this->getJson(route('api.auth.invitation', ['code' => 'nope']))->assertNotFound();
 });
 
-test('an accepted invitation is not found', function () {
+test('an accepted invitation is not found', function (): void {
     $invitation = invitationFor($this->team, $this->owner, 'accepted');
 
     $this->getJson(route('api.auth.invitation', ['code' => $invitation->code]))->assertNotFound();
 });
 
-test('an expired invitation is not found', function () {
+test('an expired invitation is not found', function (): void {
     $invitation = invitationFor($this->team, $this->owner, 'expired');
 
     $this->getJson(route('api.auth.invitation', ['code' => $invitation->code]))->assertNotFound();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\TeamRole;
@@ -11,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /**
  * @extends Factory<TeamInvitation>
  */
-class TeamInvitationFactory extends Factory
+final class TeamInvitationFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -35,7 +37,7 @@ class TeamInvitationFactory extends Factory
      */
     public function accepted(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'accepted_at' => now(),
         ]);
     }
@@ -45,7 +47,7 @@ class TeamInvitationFactory extends Factory
      */
     public function expired(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'expires_at' => now()->subDay(),
         ]);
     }
@@ -55,7 +57,7 @@ class TeamInvitationFactory extends Factory
      */
     public function expiresIn(int $value, string $unit = 'days'): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'expires_at' => now()->add($unit, $value),
         ]);
     }

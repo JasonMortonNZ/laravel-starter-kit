@@ -7,8 +7,10 @@ namespace App\Models;
 use App\Enums\TeamRole;
 use Database\Factories\TeamInvitationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +32,7 @@ use Illuminate\Support\Str;
  * @property-read User $inviter
  */
 #[Fillable(['team_id', 'email', 'role', 'invited_by', 'expires_at', 'accepted_at'])]
+#[RouteKey('code')]
 final class TeamInvitation extends Model
 {
     /** @use HasFactory<TeamInvitationFactory> */
@@ -80,21 +83,13 @@ final class TeamInvitation extends Model
     }
 
     /**
-     * Get the route key for the model.
-     */
-    public function getRouteKeyName(): string
-    {
-        return 'code';
-    }
-
-    /**
      * Bootstrap the model and its traits.
      */
     protected static function boot(): void
     {
         parent::boot();
 
-        self::creating(function (TeamInvitation $invitation) {
+        self::creating(function (TeamInvitation $invitation): void {
             if (empty($invitation->code)) {
                 $invitation->code = Str::random(64);
             }
@@ -114,6 +109,19 @@ final class TeamInvitation extends Model
             ->where(fn (Builder $expiry) => $expiry
                 ->whereNull('expires_at')
                 ->orWhere('expires_at', '>=', now()));
+    }
+
+    /**
+     * Store email addresses lowercased so lookups and unique indexes behave the
+     * same on every database driver.
+     *
+     * @return Attribute<string, string>
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value): string => mb_strtolower($value),
+        );
     }
 
     /**

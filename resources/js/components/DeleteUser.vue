@@ -54,7 +54,6 @@ const handleDeleted = () => {
                 <DialogContent>
                     <AppForm
                         :route="ProfileController.destroy()"
-                        :follow-redirect="false"
                         reset-on-success
                         @error="() => passwordInput?.focus()"
                         @success="handleDeleted"

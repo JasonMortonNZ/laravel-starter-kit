@@ -6,13 +6,13 @@ use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
 
-test('login screen can be rendered', function () {
+test('login screen can be rendered', function (): void {
     $response = $this->get(route('login'));
 
     $response->assertOk();
 });
 
-test('authenticated users are redirected away from the login screen', function () {
+test('authenticated users are redirected away from the login screen', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -20,7 +20,7 @@ test('authenticated users are redirected away from the login screen', function (
         ->assertRedirect();
 });
 
-test('users can authenticate using the login screen', function () {
+test('users can authenticate using the login screen', function (): void {
     $user = User::factory()->create();
 
     $response = $this->postJson(route('login.store'), [
@@ -31,27 +31,15 @@ test('users can authenticate using the login screen', function () {
     $this->assertAuthenticated();
     $response
         ->assertOk()
-        ->assertJsonPath('two_factor', false)
-        ->assertJsonPath('redirect', "/{$user->personalTeam()->slug}/dashboard");
+        ->assertJsonPath('two_factor', false);
 });
 
-test('authentication honours the intended url stored by a guarded deep link', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->withSession(['url.intended' => '/settings/profile'])
-        ->postJson(route('login.store'), [
-            'email' => $user->email,
-            'password' => 'password',
-        ]);
-
-    $response
-        ->assertOk()
-        ->assertJsonPath('redirect', '/settings/profile')
-        ->assertSessionMissing('url.intended');
+test('guests visiting a guarded page are sent to login with the intended path', function (): void {
+    $this->get('/settings/profile?tab=details')
+        ->assertRedirect(route('login', ['redirect' => '/settings/profile?tab=details']));
 });
 
-test('users with two factor enabled are asked for a two factor code', function () {
+test('users with two factor enabled are asked for a two factor code', function (): void {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
@@ -75,7 +63,7 @@ test('users with two factor enabled are asked for a two factor code', function (
     $this->assertGuest();
 });
 
-test('users can not authenticate with invalid password', function () {
+test('users can not authenticate with invalid password', function (): void {
     $user = User::factory()->create();
 
     $this->postJson(route('login.store'), [
@@ -86,7 +74,7 @@ test('users can not authenticate with invalid password', function () {
     $this->assertGuest();
 });
 
-test('users can logout', function () {
+test('users can logout', function (): void {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->postJson(route('logout'));
@@ -95,7 +83,7 @@ test('users can logout', function () {
     $response->assertNoContent();
 });
 
-test('users are rate limited', function () {
+test('users are rate limited', function (): void {
     $user = User::factory()->create();
 
     RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);

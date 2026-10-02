@@ -26,11 +26,11 @@ Route::get('auth/invitation', TeamInvitationLookupController::class)->name('auth
 
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
-    ->group(function () {
+    ->group(function (): void {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
     });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('settings/security', [SecurityController::class, 'show'])
         ->middleware(RequirePassword::class)
         ->name('settings.security');

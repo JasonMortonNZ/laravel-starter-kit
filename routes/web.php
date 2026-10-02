@@ -26,7 +26,7 @@ use Laravel\Fortify\Fortify;
 
 Route::view('/', 'app')->name('home');
 
-Route::middleware('guest')->group(function () {
+Route::middleware('guest')->group(function (): void {
     Route::view('login', 'app')->name('login');
     Route::view('register', 'app')->name('register');
     Route::view('forgot-password', 'app')->name('password.request');
@@ -34,10 +34,10 @@ Route::middleware('guest')->group(function () {
 
     Route::get('two-factor-challenge', fn (Request $request): View|RedirectResponse => $request->session()->has('login.id')
         ? view('app')
-        : redirect()->route('login'))->name('two-factor.login');
+        : to_route('login'))->name('two-factor.login');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function (): void {
     Route::get('email/verify', fn (Request $request): View|RedirectResponse => $request->user()?->hasVerifiedEmail()
         ? redirect()->intended(Fortify::redirects('email-verification'))
         : view('app'))->name('verification.notice');
@@ -50,7 +50,7 @@ Route::middleware('auth')->group(function () {
 
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
-    ->group(function () {
+    ->group(function (): void {
         Route::view('dashboard', 'app')->name('dashboard');
     });
 

@@ -52,8 +52,8 @@
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
             "@php artisan migrate --force",
-            "npm install",
-            "npm run build"
+            "vp install",
+            "vp build"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
@@ -62,15 +62,15 @@
         "lint": [
             "rector",
             "pint --parallel",
-            "npm run lint"
+            "vp check --fix"
         ],
         "lint:check": [
             "pint --parallel --test"
         ],
         "ci:check": [
             "Composer\\Config::disableProcessTimeout",
-            "npm run check",
-            "npm run types:check",
+            "vp check",
+            "vp run types:check",
             "@test"
         ],
         "post-autoload-dump": [
@@ -93,17 +93,17 @@
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
         "types:check": [
-            "phpstan analyse"
+            "phpstan analyse --memory-limit=1G"
         ],
-        "test:type-coverage": "pest --type-coverage --min=100",
+        "test:type-coverage": "@php -d memory_limit=1G vendor/bin/pest --type-coverage --min=100",
         "test:lint": [
             "@php artisan config:clear --ansi",
             "pint --parallel --test",
             "rector --dry-run",
-            "bun run test:lint"
+            "vp check"
         ],
         "test:unit": "XDEBUG_MODE=\"coverage\" pest --parallel --coverage --exactly=100.0",
-        "test:types": "phpstan",
+        "test:types": "phpstan analyse --memory-limit=1G",
         "test": [
             "@test:type-coverage",
             "@test:unit",
@@ -112,7 +112,7 @@
         ],
         "update:requirements": [
             "composer bump",
-            "npx npm-check-updates -u"
+            "vp update --latest"
         ]
     },
     "extra": {

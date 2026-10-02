@@ -67,7 +67,7 @@ const { data: settings, reload } = usePageData(
                         class="mt-1 block w-full"
                         autocomplete="new-password"
                         placeholder="New password"
-                        :passwordrules="settings.passwordRules"
+                        :passwordrules="settings.password_rules"
                     />
                     <InputError :message="errors.password" />
                 </div>
@@ -80,7 +80,7 @@ const { data: settings, reload } = usePageData(
                         class="mt-1 block w-full"
                         autocomplete="new-password"
                         placeholder="Confirm password"
-                        :passwordrules="settings.passwordRules"
+                        :passwordrules="settings.password_rules"
                     />
                     <InputError :message="errors.password_confirmation" />
                 </div>
@@ -97,9 +97,9 @@ const { data: settings, reload } = usePageData(
         </div>
 
         <ManageTwoFactor
-            :canManageTwoFactor="settings.canManageTwoFactor"
-            :requiresConfirmation="settings.requiresConfirmation"
-            :twoFactorEnabled="settings.twoFactorEnabled"
+            :can_manage_two_factor="settings.can_manage_two_factor"
+            :requires_confirmation="settings.requires_confirmation"
+            :two_factor_enabled="settings.two_factor_enabled"
             @changed="reload"
         />
     </template>

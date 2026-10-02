@@ -15,16 +15,15 @@ export type Auth = {
 };
 
 export type Features = {
-    canRegister: boolean;
-    canResetPassword: boolean;
-    canManageTwoFactor: boolean;
-    requiresTwoFactorConfirmation: boolean;
-    mustVerifyEmail: boolean;
+    can_register: boolean;
+    can_reset_password: boolean;
+    can_manage_two_factor: boolean;
+    requires_two_factor_confirmation: boolean;
+    must_verify_email: boolean;
 };
 
 export type AuthResponse = {
     two_factor: boolean;
-    redirect?: string;
 };
 
 export type TwoFactorConfigContent = {

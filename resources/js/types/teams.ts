@@ -4,10 +4,10 @@ export type Team = {
     id: number;
     name: string;
     slug: string;
-    isPersonal: boolean;
+    is_personal: boolean;
     role?: TeamRole;
-    roleLabel?: string;
-    isCurrent?: boolean;
+    role_label?: string;
+    is_current?: boolean;
 };
 
 export type TeamMember = {
@@ -29,12 +29,12 @@ export type TeamInvitation = {
 
 export type TeamInvitationContext = {
     code: string;
-    teamName: string;
+    team_name: string;
 };
 
 export type DashboardInvitation = {
     code: string;
-    inviterName: string;
+    inviter_name: string;
     team: {
         name: string;
         slug: string;
@@ -42,13 +42,13 @@ export type DashboardInvitation = {
 };
 
 export type TeamPermissions = {
-    canUpdateTeam: boolean;
-    canDeleteTeam: boolean;
-    canAddMember: boolean;
-    canUpdateMember: boolean;
-    canRemoveMember: boolean;
-    canCreateInvitation: boolean;
-    canCancelInvitation: boolean;
+    can_update_team: boolean;
+    can_delete_team: boolean;
+    can_add_member: boolean;
+    can_update_member: boolean;
+    can_remove_member: boolean;
+    can_create_invitation: boolean;
+    can_cancel_invitation: boolean;
 };
 
 export type RoleOption = {

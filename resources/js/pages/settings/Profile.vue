@@ -78,7 +78,7 @@ const resendVerification = async () => {
                 <InputError class="mt-2" :message="errors.email" />
             </div>
 
-            <div v-if="features.mustVerifyEmail && !user.email_verified_at">
+            <div v-if="features.must_verify_email && !user.email_verified_at">
                 <p class="-mt-4 text-sm text-muted-foreground">
                     Your email address is unverified.
                     <button

@@ -7,11 +7,11 @@ import { bootstrap } from '@/routes/api';
 import type { BootstrapData, Features, Team, User } from '@/types';
 
 const defaultFeatures: Features = {
-    canRegister: true,
-    canResetPassword: true,
-    canManageTwoFactor: false,
-    requiresTwoFactorConfirmation: false,
-    mustVerifyEmail: true,
+    can_register: true,
+    can_reset_password: true,
+    can_manage_two_factor: false,
+    requires_two_factor_confirmation: false,
+    must_verify_email: true,
 };
 
 /**
@@ -50,7 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
         currentTeam.value = value;
         teams.value = teams.value.map((team) => ({
             ...team,
-            isCurrent: team.id === value?.id,
+            is_current: team.id === value?.id,
         }));
     }
 
@@ -58,9 +58,9 @@ export const useAuthStore = defineStore('auth', () => {
         name.value = data.name;
         user.value = data.auth.user;
         teams.value = data.teams;
-        currentTeam.value = data.currentTeam;
+        currentTeam.value = data.current_team;
         features.value = data.features;
-        passwordRules.value = data.passwordRules;
+        passwordRules.value = data.password_rules;
         loaded.value = true;
     }
 

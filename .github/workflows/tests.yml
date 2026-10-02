@@ -3,6 +3,7 @@ name: tests
 on:
   push:
     branches:
+      - dev
       - main
   pull_request:
 
@@ -10,7 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  ci:
+  quality:
+    name: Lint & static analysis
     runs-on: ubuntu-latest
 
     steps:
@@ -22,17 +24,143 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
-          php-version: '8.3'
+          php-version: '8.5'
           tools: composer:v2
           coverage: none
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '22'
+          node-version-file: .nvmrc
 
-      - name: Setup Application
-        run: composer setup
+      - name: Install pnpm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global pnpm@12.8.1
 
-      - name: Run CI Checks
-        run: composer ci:check
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install JS dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Lint (Pint, Rector, Vite+)
+        run: composer test:lint
+
+      - name: PHPStan
+        run: composer test:types
+
+      - name: Type coverage
+        run: composer test:type-coverage
+
+      - name: Vue type check
+        run: vp run types:check
+
+      - name: Build assets
+        run: vp build
+
+  tests:
+    name: Tests (${{ matrix.database }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, mysql, pgsql]
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -ppassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_CONNECTION: ${{ matrix.database }}
+      DB_HOST: 127.0.0.1
+      DB_PORT: ${{ matrix.database == 'pgsql' && '5432' || '3306' }}
+      DB_DATABASE: ${{ matrix.database == 'sqlite' && ':memory:' || 'testing' }}
+      DB_USERNAME: ${{ matrix.database == 'pgsql' && 'postgres' || 'root' }}
+      DB_PASSWORD: password
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          extensions: pdo_sqlite, pdo_mysql, pdo_pgsql
+          coverage: ${{ matrix.database == 'sqlite' && 'xdebug' || 'none' }}
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install pnpm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global pnpm@12.8.1
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install JS dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Build assets
+        run: vp build
+
+      - name: Migrations run and roll back
+        run: |
+          if [ "$DB_CONNECTION" = "sqlite" ]; then
+            export DB_DATABASE="$RUNNER_TEMP/migrations.sqlite"
+            touch "$DB_DATABASE"
+          fi
+          php artisan migrate --force
+          php artisan migrate:rollback --force
+
+      - name: Tests with coverage
+        if: matrix.database == 'sqlite'
+        run: composer test:unit
+
+      - name: Tests
+        if: matrix.database != 'sqlite'
+        run: vendor/bin/pest --parallel

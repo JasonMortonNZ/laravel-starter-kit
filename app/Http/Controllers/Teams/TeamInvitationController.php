@@ -10,7 +10,9 @@ use App\Http\Requests\Teams\CreateTeamInvitationRequest;
 use App\Http\Requests\Teams\RespondToTeamInvitationRequest;
 use App\Models\Team;
 use App\Models\TeamInvitation;
+use App\Models\User;
 use App\Notifications\Teams\TeamInvitation as TeamInvitationNotification;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -21,14 +23,14 @@ final class TeamInvitationController extends Controller
     /**
      * Store a newly created invitation.
      */
-    public function store(CreateTeamInvitationRequest $request, Team $team): JsonResponse
+    public function store(CreateTeamInvitationRequest $request, Team $team, #[CurrentUser] User $user): JsonResponse
     {
         Gate::authorize('inviteMember', $team);
 
         $invitation = $team->invitations()->create([
-            'email' => $request->validated('email'),
-            'role' => TeamRole::from($request->validated('role')),
-            'invited_by' => $request->user()->id,
+            'email' => $request->string('email')->toString(),
+            'role' => $request->enum('role', TeamRole::class),
+            'invited_by' => $user->id,
             'expires_at' => now()->addDays(3),
         ]);
 
@@ -55,12 +57,11 @@ final class TeamInvitationController extends Controller
     /**
      * Accept the invitation.
      */
-    public function accept(RespondToTeamInvitationRequest $request, TeamInvitation $invitation): JsonResponse
+    public function accept(RespondToTeamInvitationRequest $request, TeamInvitation $invitation, #[CurrentUser] User $user): JsonResponse
     {
-        $user = $request->user();
         $team = $invitation->team;
 
-        DB::transaction(function () use ($user, $team, $invitation) {
+        DB::transaction(function () use ($user, $team, $invitation): void {
             $team->memberships()->firstOrCreate(
                 ['user_id' => $user->id],
                 ['role' => $invitation->role],
@@ -72,8 +73,7 @@ final class TeamInvitationController extends Controller
         });
 
         return $this->toast(__('Invitation accepted.'), [
-            'redirect' => route('dashboard', ['current_team' => $team->slug], false),
-            'currentTeam' => $user->toCurrentUserTeam(),
+            'current_team' => $user->toCurrentUserTeam(),
         ]);
     }
 

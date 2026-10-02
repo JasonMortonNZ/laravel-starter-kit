@@ -7,7 +7,7 @@ use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
 
-test('the teams index page can be rendered', function () {
+test('the teams index page can be rendered', function (): void {
     $user = User::factory()->create();
 
     $response = $this
@@ -22,10 +22,10 @@ test('the teams index page can be rendered', function () {
         ->assertOk()
         ->assertJsonCount(1, 'teams')
         ->assertJsonPath('teams.0.slug', $user->personalTeam()->slug)
-        ->assertJsonPath('teams.0.isCurrent', true);
+        ->assertJsonPath('teams.0.is_current', true);
 });
 
-test('teams can be created', function () {
+test('teams can be created', function (): void {
     $user = User::factory()->create();
 
     $response = $this
@@ -37,8 +37,7 @@ test('teams can be created', function () {
     $response
         ->assertCreated()
         ->assertJsonPath('toast.message', 'Team created.')
-        ->assertJsonPath('team.name', 'Test Team')
-        ->assertJsonPath('redirect', route('teams.edit', ['team' => Team::where('name', 'Test Team')->firstOrFail()->slug], false));
+        ->assertJsonPath('team.name', 'Test Team');
 
     $this->assertDatabaseHas('teams', [
         'name' => 'Test Team',
@@ -46,7 +45,19 @@ test('teams can be created', function () {
     ]);
 });
 
-test('personal team returns the team owned by the user', function () {
+test('team names must be strings', function (): void {
+    $user = User::factory()->create();
+
+    $this
+        ->actingAs($user)
+        ->postJson(route('teams.store'), [
+            'name' => ['Test Team'],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('name');
+});
+
+test('personal team returns the team owned by the user', function (): void {
     $otherUser = User::factory()->create();
     $user = User::factory()->make();
     $user->save();
@@ -63,7 +74,7 @@ test('personal team returns the team owned by the user', function () {
     expect($personalTeam->is($user->personalTeam()))->toBeTrue();
 });
 
-test('team slug uses next available suffix', function () {
+test('team slug uses next available suffix', function (): void {
     $user = User::factory()->create();
 
     Team::factory()->create(['name' => 'Acme', 'slug' => 'acme']);
@@ -82,7 +93,7 @@ test('team slug uses next available suffix', function () {
     ]);
 });
 
-test('the team edit page can be rendered', function () {
+test('the team edit page can be rendered', function (): void {
     $user = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -94,7 +105,7 @@ test('the team edit page can be rendered', function () {
         ->assertOk();
 });
 
-test('team data includes members, invitations, and permissions', function () {
+test('team data includes members, invitations, and permissions', function (): void {
     $user = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -112,17 +123,17 @@ test('team data includes members, invitations, and permissions', function () {
         ->getJson(route('api.teams.show', $team))
         ->assertOk()
         ->assertJsonPath('team.slug', $team->slug)
-        ->assertJsonPath('team.isPersonal', false)
+        ->assertJsonPath('team.is_personal', false)
         ->assertJsonPath('members.0.id', $user->id)
         ->assertJsonPath('members.0.role', TeamRole::Owner->value)
         ->assertJsonPath('members.0.role_label', TeamRole::Owner->label())
         ->assertJsonPath('invitations.0.code', $invitation->code)
         ->assertJsonPath('invitations.0.role_label', TeamRole::Admin->label())
-        ->assertJsonPath('permissions.canUpdateTeam', true)
-        ->assertJsonPath('availableRoles.0.value', TeamRole::Admin->value);
+        ->assertJsonPath('permissions.can_update_team', true)
+        ->assertJsonPath('available_roles.0.value', TeamRole::Admin->value);
 });
 
-test('team data is forbidden for non members', function () {
+test('team data is forbidden for non members', function (): void {
     $user = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -132,7 +143,7 @@ test('team data is forbidden for non members', function () {
         ->assertForbidden();
 });
 
-test('teams can be updated by owners', function () {
+test('teams can be updated by owners', function (): void {
     $user = User::factory()->create();
     $team = Team::factory()->create(['name' => 'Original Name']);
 
@@ -155,7 +166,7 @@ test('teams can be updated by owners', function () {
     ]);
 });
 
-test('teams cannot be updated by members', function () {
+test('teams cannot be updated by members', function (): void {
     $owner = User::factory()->create();
     $member = User::factory()->create();
     $team = Team::factory()->create();
@@ -172,7 +183,7 @@ test('teams cannot be updated by members', function () {
     $response->assertForbidden();
 });
 
-test('teams can be deleted by owners', function () {
+test('teams can be deleted by owners', function (): void {
     $user = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -186,15 +197,14 @@ test('teams can be deleted by owners', function () {
 
     $response
         ->assertOk()
-        ->assertJsonPath('toast.message', 'Team deleted.')
-        ->assertJsonPath('redirect', route('teams.index', absolute: false));
+        ->assertJsonPath('toast.message', 'Team deleted.');
 
     $this->assertSoftDeleted('teams', [
         'id' => $team->id,
     ]);
 });
 
-test('team deletion requires name confirmation', function () {
+test('team deletion requires name confirmation', function (): void {
     $user = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -216,7 +226,7 @@ test('team deletion requires name confirmation', function () {
     ]);
 });
 
-test('deleting current team switches to alphabetically first remaining team', function () {
+test('deleting current team switches to alphabetically first remaining team', function (): void {
     $user = User::factory()->create(['name' => 'Mike']);
 
     $zuluTeam = Team::factory()->create(['name' => 'Zulu Team']);
@@ -238,7 +248,7 @@ test('deleting current team switches to alphabetically first remaining team', fu
 
     $response
         ->assertOk()
-        ->assertJsonPath('currentTeam.id', $alphaTeam->id);
+        ->assertJsonPath('current_team.id', $alphaTeam->id);
 
     $this->assertSoftDeleted('teams', [
         'id' => $zuluTeam->id,
@@ -247,7 +257,7 @@ test('deleting current team switches to alphabetically first remaining team', fu
     expect($user->fresh()->current_team_id)->toEqual($alphaTeam->id);
 });
 
-test('deleting current team falls back to personal team when alphabetically first', function () {
+test('deleting current team falls back to personal team when alphabetically first', function (): void {
     $user = User::factory()->create();
     $personalTeam = $user->personalTeam();
     $team = Team::factory()->create(['name' => 'Zulu Team']);
@@ -263,7 +273,7 @@ test('deleting current team falls back to personal team when alphabetically firs
 
     $response
         ->assertOk()
-        ->assertJsonPath('currentTeam.id', $personalTeam->id);
+        ->assertJsonPath('current_team.id', $personalTeam->id);
 
     $this->assertSoftDeleted('teams', [
         'id' => $team->id,
@@ -272,7 +282,7 @@ test('deleting current team falls back to personal team when alphabetically firs
     expect($user->fresh()->current_team_id)->toEqual($personalTeam->id);
 });
 
-test('deleting non current team leaves current team unchanged', function () {
+test('deleting non current team leaves current team unchanged', function (): void {
     $user = User::factory()->create();
     $personalTeam = $user->personalTeam();
     $team = Team::factory()->create();
@@ -288,7 +298,7 @@ test('deleting non current team leaves current team unchanged', function () {
 
     $response
         ->assertOk()
-        ->assertJsonPath('currentTeam.id', $personalTeam->id);
+        ->assertJsonPath('current_team.id', $personalTeam->id);
 
     $this->assertSoftDeleted('teams', [
         'id' => $team->id,
@@ -297,7 +307,7 @@ test('deleting non current team leaves current team unchanged', function () {
     expect($user->fresh()->current_team_id)->toEqual($personalTeam->id);
 });
 
-test('members can leave non personal teams', function () {
+test('members can leave non personal teams', function (): void {
     $owner = User::factory()->create();
     $member = User::factory()->create();
     $team = Team::factory()->create();
@@ -311,13 +321,12 @@ test('members can leave non personal teams', function () {
 
     $response
         ->assertOk()
-        ->assertJsonPath('redirect', route('teams.index', absolute: false))
         ->assertJsonPath('toast', ['type' => 'success', 'message' => "You left the team \"{$team->name}\""]);
 
     expect($member->fresh()->belongsToTeam($team))->toBeFalse();
 });
 
-test('leaving current team switches to alphabetically first remaining team', function () {
+test('leaving current team switches to alphabetically first remaining team', function (): void {
     $owner = User::factory()->create();
     $member = User::factory()->create(['name' => 'Mike']);
 
@@ -339,13 +348,13 @@ test('leaving current team switches to alphabetically first remaining team', fun
 
     $response
         ->assertOk()
-        ->assertJsonPath('currentTeam.id', $alphaTeam->id);
+        ->assertJsonPath('current_team.id', $alphaTeam->id);
 
     expect($member->fresh()->belongsToTeam($zuluTeam))->toBeFalse();
     expect($member->fresh()->current_team_id)->toEqual($alphaTeam->id);
 });
 
-test('personal teams cannot be left', function () {
+test('personal teams cannot be left', function (): void {
     $user = User::factory()->create();
     $personalTeam = $user->personalTeam();
 
@@ -358,7 +367,7 @@ test('personal teams cannot be left', function () {
     expect($user->fresh()->belongsToTeam($personalTeam))->toBeTrue();
 });
 
-test('team owners cannot leave their team', function () {
+test('team owners cannot leave their team', function (): void {
     $owner = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -373,7 +382,7 @@ test('team owners cannot leave their team', function () {
     expect($owner->fresh()->belongsToTeam($team))->toBeTrue();
 });
 
-test('users cannot leave teams they dont belong to', function () {
+test('users cannot leave teams they dont belong to', function (): void {
     $user = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -384,7 +393,7 @@ test('users cannot leave teams they dont belong to', function () {
     $response->assertForbidden();
 });
 
-test('deleting team switches other affected users to their personal team', function () {
+test('deleting team switches other affected users to their personal team', function (): void {
     $owner = User::factory()->create();
     $member = User::factory()->create();
 
@@ -406,7 +415,7 @@ test('deleting team switches other affected users to their personal team', funct
     expect($member->fresh()->current_team_id)->toEqual($member->personalTeam()->id);
 });
 
-test('personal teams cannot be deleted', function () {
+test('personal teams cannot be deleted', function (): void {
     $user = User::factory()->create();
 
     $personalTeam = $user->personalTeam();
@@ -425,7 +434,7 @@ test('personal teams cannot be deleted', function () {
     ]);
 });
 
-test('teams cannot be deleted by non owners', function () {
+test('teams cannot be deleted by non owners', function (): void {
     $owner = User::factory()->create();
     $member = User::factory()->create();
     $team = Team::factory()->create();
@@ -442,7 +451,7 @@ test('teams cannot be deleted by non owners', function () {
     $response->assertForbidden();
 });
 
-test('users can switch teams', function () {
+test('users can switch teams', function (): void {
     $user = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -454,12 +463,12 @@ test('users can switch teams', function () {
 
     $response
         ->assertOk()
-        ->assertJsonPath('currentTeam.id', $team->id);
+        ->assertJsonPath('current_team.id', $team->id);
 
     expect($user->fresh()->current_team_id)->toEqual($team->id);
 });
 
-test('users cannot switch to team they dont belong to', function () {
+test('users cannot switch to team they dont belong to', function (): void {
     $user = User::factory()->create();
     $team = Team::factory()->create();
 
@@ -470,8 +479,20 @@ test('users cannot switch to team they dont belong to', function () {
     $response->assertForbidden();
 });
 
-test('guests cannot access teams', function () {
+test('guests cannot access teams', function (): void {
     $response = $this->get(route('teams.index'));
 
-    $response->assertRedirect(route('login'));
+    $response->assertRedirect(route('login', ['redirect' => route('teams.index', absolute: false)]));
+});
+
+test('reserved team names are rejected', function (): void {
+    $user = User::factory()->create();
+
+    $this
+        ->actingAs($user)
+        ->postJson(route('teams.store'), [
+            'name' => ' Settings ',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('name');
 });

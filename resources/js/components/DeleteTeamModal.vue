@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import AppForm from '@/components/AppForm.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ const emit = defineEmits<{
 }>();
 
 const auth = useAuthStore();
+const router = useRouter();
 const confirmationName = ref('');
 const formKey = ref(0);
 
@@ -45,10 +47,12 @@ const handleOpenChange = (nextOpen: boolean) => {
     }
 };
 
-const handleSuccess = () => {
+const handleSuccess = async () => {
     handleOpenChange(false);
 
-    void auth.fetch();
+    await auth.fetch();
+
+    await router.push({ name: 'teams.index' });
 };
 </script>
 

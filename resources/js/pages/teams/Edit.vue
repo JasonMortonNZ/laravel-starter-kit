@@ -67,7 +67,7 @@ const pageTitle = computed(() => {
         return 'Team';
     }
 
-    return data.value.permissions.canUpdateTeam
+    return data.value.permissions.can_update_team
         ? `Edit ${data.value.team.name}`
         : `View ${data.value.team.name}`;
 });
@@ -129,7 +129,7 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
     <template v-else>
         <div class="flex flex-col space-y-10">
             <!-- Team Name Section -->
-            <div v-if="data.permissions.canUpdateTeam" class="space-y-6">
+            <div v-if="data.permissions.can_update_team" class="space-y-6">
                 <Heading
                     variant="small"
                     title="Team settings"
@@ -177,14 +177,14 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
                         variant="small"
                         title="Team members"
                         :description="
-                            data.permissions.canCreateInvitation
+                            data.permissions.can_create_invitation
                                 ? 'Manage who belongs to this team'
                                 : ''
                         "
                     />
 
                     <Button
-                        v-if="data.permissions.canCreateInvitation"
+                        v-if="data.permissions.can_create_invitation"
                         data-test="invite-member-button"
                         @click="inviteDialogOpen = true"
                     >
@@ -224,7 +224,7 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
                             <DropdownMenu
                                 v-if="
                                     member.role !== 'owner' &&
-                                    data.permissions.canUpdateMember
+                                    data.permissions.can_update_member
                                 "
                             >
                                 <DropdownMenuTrigger as-child>
@@ -241,7 +241,7 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
                                     <DropdownMenuItem
-                                        v-for="role in data.availableRoles"
+                                        v-for="role in data.available_roles"
                                         :key="role.value"
                                         data-test="member-role-option"
                                         @click="
@@ -259,7 +259,7 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
                             <TooltipProvider
                                 v-if="
                                     member.role !== 'owner' &&
-                                    data.permissions.canRemoveMember
+                                    data.permissions.can_remove_member
                                 "
                             >
                                 <Tooltip>
@@ -315,7 +315,7 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
                         </div>
 
                         <TooltipProvider
-                            v-if="data.permissions.canCancelInvitation"
+                            v-if="data.permissions.can_cancel_invitation"
                         >
                             <Tooltip>
                                 <TooltipTrigger as-child>
@@ -341,7 +341,9 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
 
             <!-- Danger Zone -->
             <div
-                v-if="data.permissions.canDeleteTeam && !data.team.isPersonal"
+                v-if="
+                    data.permissions.can_delete_team && !data.team.is_personal
+                "
                 class="space-y-6"
             >
                 <Heading
@@ -371,9 +373,9 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
         </div>
 
         <InviteMemberModal
-            v-if="data.permissions.canCreateInvitation"
+            v-if="data.permissions.can_create_invitation"
             :team="data.team"
-            :available-roles="data.availableRoles"
+            :available-roles="data.available_roles"
             :open="inviteDialogOpen"
             @update:open="inviteDialogOpen = $event"
             @success="reload"
@@ -396,7 +398,7 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
         />
 
         <DeleteTeamModal
-            v-if="data.permissions.canDeleteTeam && !data.team.isPersonal"
+            v-if="data.permissions.can_delete_team && !data.team.is_personal"
             :team="data.team"
             :open="deleteDialogOpen"
             @update:open="deleteDialogOpen = $event"
