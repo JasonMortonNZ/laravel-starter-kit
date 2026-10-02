@@ -50,6 +50,9 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      - name: Generate Wayfinder routes
+        run: php artisan wayfinder:generate --with-form
+
       - name: Lint (Pint, Rector, Vite+)
         run: composer test:lint
 
