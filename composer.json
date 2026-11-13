@@ -1,11 +1,12 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
+    "name": "jasonmortonnz/laravel-starter-kit",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "An opinionated Laravel and Vue starter kit.",
     "keywords": [
         "laravel",
-        "framework"
+        "vue",
+        "starter-kit"
     ],
     "license": "MIT",
     "require": {
@@ -13,6 +14,7 @@
         "laravel/chisel": "^0.1.1",
         "laravel/fortify": "^1.39",
         "laravel/framework": "^13.32",
+        "laravel/reverb": "^1.13",
         "laravel/tinker": "^3.0.2",
         "laravel/wayfinder": "^0.1.21"
     },
@@ -86,8 +88,10 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",
+            "@php artisan reverb:install --no-interaction --ansi",
             "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
-            "@php artisan migrate --graceful --ansi"
+            "@php artisan migrate --graceful --ansi",
+            "@php artisan boost:update --ansi"
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"

@@ -38,7 +38,7 @@ corepack pnpm exec vp run types:check
 composer test
 ```
 
-This runs the lint dry-run, PHPStan, 100% type coverage and 100% code coverage. If coverage tooling isn't available locally, use `composer test:local` (Herd).
+This runs the lint dry-run, PHPStan, 100% type coverage and 100% code coverage.
 
 ## 5. Accessibility (WCAG 2.2 AA, manual)
 
@@ -51,19 +51,18 @@ Review every changed `.vue` file and the components it uses. Check that:
 - Text and controls meet contrast ratios (4.5:1 for text, 3:1 for UI and focus), and meaning is never carried by colour alone.
 - Headings follow a logical order, landmarks are used, tables have header cells, and icon-only buttons have accessible names.
 - Targets are at least 24×24px, and content reflows at 320px width and 200% zoom.
-- Public-facing pages (e.g. consent forms opened by guardians) use plain language.
+- Public-facing pages use plain language.
 
 Fix any issues, then list what was checked.
 
 ## 6. Security
 
-Run the built-in `/security-review` against the branch. It needs a git remote (`origin/HEAD`). Until the repo has one, have an independent subagent review `git diff master...HEAD` instead, and brief it with the invariants in `.ai/rules/domain.md` but not your own conclusions. Then check the domain-specific points:
+Run the built-in `/security-review` against the branch. It needs a git remote (`origin/HEAD`). Until the repo has one, have an independent subagent review `git diff master...HEAD` instead, and brief it with the invariants in `.ai/rules/domain.md` but not your own conclusions. Then check these points, plus any invariants in `.ai/rules/domain.md`:
 
-- [ ] Every new org route is inside the `orgs/{organisation}` group and has a cross-organisation 404 test.
 - [ ] Every mutating endpoint calls `Gate::authorize` with the right permission, and has 403 tests.
 - [ ] Public or token routes are throttled. Tokens are random, single-purpose, expiring and revocable, and are compared in constant time.
-- [ ] No people or guardian personal data appears in audit properties, logs, exceptions or URLs.
-- [ ] FormRequests validate every input. No mass assignment of `org_id` or role fields from request data.
+- [ ] No personal data appears in audit properties, logs, exceptions or URLs.
+- [ ] FormRequests validate every input. No mass assignment of ownership or role fields from request data.
 - [ ] Destructive actions require `password.confirm`.
 - [ ] File uploads validate type and size, and are stored on private disks and served through authorized routes.
 - [ ] No secrets in code or committed config. New env keys are added to `.env.example`.

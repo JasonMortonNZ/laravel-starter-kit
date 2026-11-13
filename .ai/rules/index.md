@@ -12,7 +12,7 @@ Read every rule file whose globs match the paths you are about to create or edit
 | [database.md](database.md) | `database/**`, `app/Models/**`, any query or `Schema::` usage |
 | [testing.md](testing.md) | `tests/**`, `database/factories/**`, `database/seeders/**`, `phpunit.xml`, `.github/workflows/**` |
 | [javascript.md](javascript.md) | `resources/js/**`, `resources/css/**`, `*.ts`, `*.vue`, `vite.config.ts`, `package.json` |
-| [domain.md](domain.md) | `app/**`, `routes/**`, `database/**`, `config/privacy-rules.php`, `tests/**`, `resources/js/**` |
+| [domain.md](domain.md) | `app/**`, `routes/**`, `database/**`, `tests/**`, `resources/js/**` |
 | [workflow.md](workflow.md) | End of a phase, phase PRs, any change to a pattern a rule or skill documents |
 
 ## Domain skills
@@ -24,4 +24,4 @@ Step-by-step recipes for recurring work live in `.ai/skills/`. `php artisan boos
 | `phase-review` | Finishing a phase or opening a phase PR |
 | `maintain-agent-knowledge` | Reviewing and updating these rules and skills (run by `phase-review`) |
 
-Project decisions that shape the code live in `.scopes/scope.md` and `.scopes/questions.md`. Terminology lives in `docs/internal/glossary.md`.
+When present, project decisions that shape the code live in `.scopes/scope.md` and `.scopes/questions.md`, and terminology lives in `docs/internal/glossary.md`.
